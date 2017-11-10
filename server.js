@@ -8,8 +8,8 @@ app.use(express.static("public"));
 
 app.use(function(req, res, next){
   res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Header", "Origin, X-Requested-With, Content-Type, Accept");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Headers, Access-Control-Allow-Header, Access-Control-Allow-Origin, Access-Control-Allow-Methods");
+  res.header("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS, POST, PUT, DELETE");
   next();
 });
 
@@ -32,24 +32,23 @@ app.get('/api/crypto-types', (req, res) => {
   const values = [ user_id ];
   db.query(cryptoQuery, values, (err, result) => {
     if (err) {
-      console.log(err, 'err');
       return res.status(500).json({ error: err.message });
     }
     else {
-      console.log(result, 'result');
       res.json({ data: result.rows });
     }
-
   });
 });
 
 app.get('/api/crypto-types/transactions', (req, res) => {
   const cryptoQuery = 'SELECT crypto_types.id AS crypto_type_id, transactions.id AS transaction_id, usd_invested, coin_purchased, exchange_rate, updated_at FROM crypto_types LEFT OUTER JOIN transactions ON crypto_types.id = transactions.crypto_id WHERE user_id = $1';
   const { user_id } = req.query;
+  const values = [user_id];
+  
   if (!user_id) {
     return res.status(400).json({ error: 'User ID required as query param' });
   }
-  db.query(cryptoQuery, (err, result) => {
+  db.query(cryptoQuery, values, (err, result) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
