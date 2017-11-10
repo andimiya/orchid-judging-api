@@ -43,8 +43,8 @@ app.get('/api/crypto-types', (req, res) => {
 app.get('/api/crypto-types/transactions', (req, res) => {
   const cryptoQuery = 'SELECT crypto_types.id AS crypto_type_id, transactions.id AS transaction_id, usd_invested, coin_purchased, exchange_rate, updated_at FROM crypto_types LEFT OUTER JOIN transactions ON crypto_types.id = transactions.crypto_id WHERE user_id = $1';
   const { user_id } = req.query;
-  const values = [user_id];
-  
+  const values = [ user_id ];
+
   if (!user_id) {
     return res.status(400).json({ error: 'User ID required as query param' });
   }
