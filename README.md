@@ -11,3 +11,6 @@ Run the Project:
 - Dependencies: `node 7.10`
 - Run `npm install`
 - Run `nodemon server.js`
+
+Table Relations:
+![image](https://user-images.githubusercontent.com/20802421/32694605-4cde01b8-c6e8-11e7-801b-807c15001905.png)
