@@ -111,7 +111,8 @@ app.post('/api/transactions', (req, res) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
-    return res.json({ data: result.rows });
+    console.log({ data: result.rows, status: 200 });
+    return res.json({ data: result.rows, status: 200 });
   });
 });
 
