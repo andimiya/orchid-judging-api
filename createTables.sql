@@ -9,14 +9,13 @@ CREATE TABLE Users (
 
 CREATE TABLE Crypto_Types (
   id serial primary key,
-  user_id integer references Users(id),
   symbol text not null,
   name text not null
 );
 
 CREATE TABLE Transactions (
   id serial primary key,
-  crypto_id integer references Crypto_Types(id),
+  crypto_type_id integer references Crypto_Types(id),
   usd_invested float8 not null,
   coin_purchased float8 not null,
   exchange_rate float8 not null,

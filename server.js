@@ -103,6 +103,8 @@ app.post('/api/crypto-types', (req, res) => {
 app.post('/api/transactions', (req, res) => {
   const insertQuery = 'INSERT INTO Transactions (crypto_id, usd_invested, coin_purchased, exchange_rate, created_at, updated_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id, usd_invested';
   const { crypto_id, usd_invested, coin_purchased, exchange_rate } = req.body;
+  const newcryptoid = JSON.parse(crypto_id);
+  console.log(newcryptoid.symbol, 'symbol');
   if (!crypto_id || !usd_invested || !coin_purchased || !exchange_rate) {
     return res.status(400).json({ error: 'Entries required'})
   }
