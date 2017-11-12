@@ -16,6 +16,7 @@ CREATE TABLE Crypto_Types (
 CREATE TABLE Transactions (
   id serial primary key,
   crypto_type_id integer references Crypto_Types(id),
+  user_id integer references Users(id),
   usd_invested float8 not null,
   coin_purchased float8 not null,
   exchange_rate float8 not null,

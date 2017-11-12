@@ -23,6 +23,12 @@ app.get('/api/users', (req, res) => {
   });
 });
 
+app.get('/api/currencies', (req, res) => {
+  db.query('SELECT * FROM crypto_types', (err, result) => {
+    res.json({data: result.rows });
+  });
+});
+
 app.get('/api/crypto-types', (req, res) => {
   const cryptoQuery = 'SELECT * FROM Crypto_Types WHERE user_id = $1';
   const { user_id } = req.query;
@@ -85,30 +91,13 @@ app.post('/api/users', (req, res) => {
   });
 });
 
-app.post('/api/crypto-types', (req, res) => {
-  const insertQuery = 'INSERT INTO Crypto_Types (user_id, symbol, name) VALUES ($1, $2, $3) RETURNING user_id, symbol';
-  const { user_id, symbol, name } = req.body;
-  if (!user_id || !symbol) {
-    return res.status(400).json({ error: 'User ID and crypto symbol required'})
-  }
-  const values = [user_id, symbol, name];
-  db.query(insertQuery, values, (err, result) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-    return res.json({ data: result.rows });
-  });
-});
-
 app.post('/api/transactions', (req, res) => {
-  const insertQuery = 'INSERT INTO Transactions (crypto_id, usd_invested, coin_purchased, exchange_rate, created_at, updated_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id, usd_invested';
-  const { crypto_id, usd_invested, coin_purchased, exchange_rate } = req.body;
-  const newcryptoid = JSON.parse(crypto_id);
-  console.log(newcryptoid.symbol, 'symbol');
-  if (!crypto_id || !usd_invested || !coin_purchased || !exchange_rate) {
+  const insertQuery = 'INSERT INTO Transactions (crypto_type_id, user_id, usd_invested, coin_purchased, exchange_rate, created_at, updated_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id, usd_invested';
+  const { user_id, crypto_id, usd_invested, coin_purchased, exchange_rate } = req.body;
+  if (!user_id || !crypto_id || !usd_invested || !coin_purchased || !exchange_rate) {
     return res.status(400).json({ error: 'Entries required'})
   }
-  const values = [crypto_id, usd_invested, coin_purchased, exchange_rate];
+  const values = [user_id, crypto_id, usd_invested, coin_purchased, exchange_rate];
   db.query(insertQuery, values, (err, result) => {
     if (err) {
       return res.status(500).json({ error: err.message });
