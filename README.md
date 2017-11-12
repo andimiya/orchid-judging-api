@@ -12,5 +12,6 @@ Run the Project:
 - Run `npm install`
 - Run `nodemon server.js`
 
-Table Relations:
+Table Relations:  
+
 ![image](https://user-images.githubusercontent.com/20802421/32694620-b92874de-c6e8-11e7-89a6-c8d395f7b39e.png)
