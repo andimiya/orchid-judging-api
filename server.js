@@ -30,7 +30,7 @@ app.get('/api/currencies', (req, res) => {
 });
 
 app.get('/api/crypto-types', (req, res) => {
-  const cryptoQuery = 'SELECT DISTINCT crypto_types.name FROM transactions INNER JOIN crypto_types ON transactions.crypto_type_id = crypto_types.id WHERE user_id = $1';
+  const cryptoQuery = 'SELECT DISTINCT crypto_types.name, crypto_types.symbol FROM transactions INNER JOIN crypto_types ON transactions.crypto_type_id = crypto_types.id WHERE user_id = $1';
   const { user_id } = req.query;
   if (!user_id) {
     return res.status(400).json({ error: 'User ID required as query param' });
