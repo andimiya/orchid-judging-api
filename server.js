@@ -92,12 +92,12 @@ app.post('/api/users', (req, res) => {
 });
 
 app.post('/api/transactions', (req, res) => {
-  const insertQuery = 'INSERT INTO Transactions (crypto_type_id, user_id, usd_invested, coin_purchased, exchange_rate, created_at, updated_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id, usd_invested';
-  const { user_id, crypto_id, usd_invested, coin_purchased, exchange_rate } = req.body;
-  if (!user_id || !crypto_id || !usd_invested || !coin_purchased || !exchange_rate) {
+  const insertQuery = 'INSERT INTO Transactions (crypto_type_id, user_id, usd_invested, coin_purchased, exchange_rate, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id, usd_invested';
+  const { crypto_id, user_id, usd_invested, coin_purchased, exchange_rate } = req.body;
+  if (!crypto_id || !user_id || !usd_invested || !coin_purchased || !exchange_rate) {
     return res.status(400).json({ error: 'Entries required'})
   }
-  const values = [user_id, crypto_id, usd_invested, coin_purchased, exchange_rate];
+  const values = [crypto_id, user_id, usd_invested, coin_purchased, exchange_rate];
   db.query(insertQuery, values, (err, result) => {
     if (err) {
       return res.status(500).json({ error: err.message });
