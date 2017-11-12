@@ -13,4 +13,4 @@ Run the Project:
 - Run `nodemon server.js`
 
 Table Relations:
-![image](https://user-images.githubusercontent.com/20802421/32694605-4cde01b8-c6e8-11e7-801b-807c15001905.png)
+![image](https://user-images.githubusercontent.com/20802421/32694620-b92874de-c6e8-11e7-89a6-c8d395f7b39e.png)
