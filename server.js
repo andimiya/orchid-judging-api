@@ -30,7 +30,7 @@ app.get('/api/currencies', (req, res) => {
 });
 
 app.get('/api/crypto-types', (req, res) => {
-  const cryptoQuery = 'SELECT * FROM Crypto_Types WHERE user_id = $1';
+  const cryptoQuery = 'SELECT DISTINCT crypto_types.name FROM transactions INNER JOIN crypto_types ON transactions.crypto_type_id = crypto_types.id WHERE user_id = $1';
   const { user_id } = req.query;
   if (!user_id) {
     return res.status(400).json({ error: 'User ID required as query param' });
@@ -46,8 +46,8 @@ app.get('/api/crypto-types', (req, res) => {
   });
 });
 
-app.get('/api/crypto-types/transactions', (req, res) => {
-  const cryptoQuery = 'SELECT crypto_types.id AS crypto_name, transactions.id AS transaction_id, usd_invested, coin_purchased, exchange_rate, updated_at, crypto_types.name FROM crypto_types LEFT OUTER JOIN transactions ON crypto_types.id = transactions.crypto_id WHERE user_id = $1';
+app.get('/api/transactions', (req, res) => {
+  const cryptoQuery = 'SELECT crypto_types.id AS crypto_name, transactions.id AS transaction_id, usd_invested, coin_purchased, exchange_rate, updated_at, crypto_types.name FROM crypto_types LEFT OUTER JOIN transactions ON crypto_types.id = transactions.crypto_type_id WHERE user_id = $1';
   const { user_id } = req.query;
   const values = [ user_id ];
 
@@ -62,9 +62,13 @@ app.get('/api/crypto-types/transactions', (req, res) => {
   });
 });
 
+//
+// SELECT DISTINCT crypto_types.name FROM transactions INNER JOIN crypto_types ON transactions.crypto_type_id = crypto_types.id WHERE user_id = $1
+
 app.get('/api/crypto-types/sums', (req, res) => {
-  const cryptoQuery = 'SELECT crypto_id, SUM(usd_invested) AS usd_invested, SUM(coin_purchased) AS coin_purchased FROM Transactions GROUP BY crypto_id';
+  const cryptoQuery = 'SELECT crypto_types.name, SUM(usd_invested) AS usd_invested, SUM(coin_purchased) AS coin_purchased FROM Transactions INNER JOIN crypto_types ON transactions.crypto_type_id = crypto_types.id GROUP BY crypto_types.name';
   const { user_id } = req.query;
+
   if (!user_id) {
     return res.status(400).json({ error: 'User ID required as query param' });
   }
@@ -102,7 +106,6 @@ app.post('/api/transactions', (req, res) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
-    console.log({ data: result.rows, status: 200 });
     return res.json({ data: result.rows, status: 200 });
   });
 });
