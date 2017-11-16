@@ -19,13 +19,13 @@ app.use(bodyParser.json());
 
 app.get('/api/users', (req, res) => {
   db.query('SELECT * FROM Users', (err, result) => {
-    res.send('send');
+    res.json({ data: result });
   });
 });
 
 app.get('/api/currencies', (req, res) => {
   db.query('SELECT * FROM crypto_types', (err, result) => {
-    res.json({data: result.rows });
+    res.json({ data: result.rows });
   });
 });
 

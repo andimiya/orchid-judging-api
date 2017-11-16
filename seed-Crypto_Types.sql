@@ -1,6 +1,4 @@
-START TRANSACTION;
-INSERT INTO Crypto_Types (name, symbol)
-VALUES
+INSERT INTO Crypto_Types (name, symbol) VALUES
   ('Bitcoin','BTC'),
   ('Ethereum','ETH'),
   ('Bitcoin Cash','BCH'),
@@ -200,6 +198,4 @@ VALUES
   ('Einsteinium','EMC2'),
   ('Expanse','EXP'),
   ('Rialto','XRL'),
-  ('Humaniq','HMQ')
-
-COMMIT;
+  ('Humaniq','HMQ');
