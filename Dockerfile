@@ -16,5 +16,7 @@ RUN npm install
 # Bundle app source
 COPY . .
 
+RUN apt-get update && apt-get install -y vim
+
 EXPOSE 8080
 CMD [ "npm", "start" ]
