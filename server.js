@@ -68,9 +68,6 @@ app.get('/api/transactions', (req, res) => {
   });
 });
 
-//
-// SELECT DISTINCT crypto_types.name FROM transactions INNER JOIN crypto_types ON transactions.crypto_type_id = crypto_types.id WHERE user_id = $1
-
 app.get('/api/crypto-types/sums', (req, res) => {
   const cryptoQuery = 'SELECT crypto_types.name, SUM(usd_invested) AS usd_invested, SUM(coin_purchased) AS coin_purchased FROM Transactions INNER JOIN crypto_types ON transactions.crypto_type_id = crypto_types.id GROUP BY crypto_types.name';
   const { user_id } = req.query;
@@ -115,6 +112,21 @@ app.post('/api/transactions', (req, res) => {
     return res.json({ data: result.rows, status: 200 });
   });
 });
+
+app.delete('/api/transactions', (req, res) => {
+  const deleteQuery = 'DELETE FROM Transactions WHERE id = $1'
+  const { id } = req.query;
+  const values = [ id ];  
+  if (!user_id) {
+    return res.status(400).json({ error: 'User ID required as query param' });
+  }
+  db.query(deleteQuery, values, (err, result) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    return res.json({ data: result.rows, status: 200 });
+  });
+})
 
 app.listen(PORT, function() {
   console.log('Server started on', PORT);
