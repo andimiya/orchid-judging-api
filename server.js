@@ -113,21 +113,37 @@ app.post('/api/transactions', (req, res) => {
     return res.json({ data: result.rows, status: 200 });
   });
 });
-//
-// app.delete('/api/transactions', (req, res) => {
-//   const deleteQuery = 'DELETE FROM Transactions WHERE id = $1'
-//   const { id } = req.query;
-//   const values = [ id ];
-//   if (!user_id) {
-//     return res.status(400).json({ error: 'User ID required as query param' });
-//   }
-//   db.query(deleteQuery, values, (err, result) => {
-//     if (err) {
-//       return res.status(500).json({ error: err.message });
-//     }
-//     return res.json({ data: result.rows, status: 200 });
-//   });
-// })
+
+app.delete('/api/transactions', (req, res) => {
+  const deleteQuery = 'DELETE FROM Transactions WHERE id = $1'
+  const { id } = req.params.id;
+  const values = [ id ];
+  if (!user_id) {
+    return res.status(400).json({ error: 'User ID required as query param' });
+  }
+  db.query(deleteQuery, values, (err, result) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    return res.json({ data: result.rows, status: 200 });
+  });
+})
+
+
+app.delete('/api/transactions/:id', (req, res) => {
+  const deleteQuery = 'DELETE FROM Transactions WHERE id = $1';
+  const { id } = req.params;
+  const values = [id];
+  if (!id) {
+    return res.status(400).json({ error: 'Transaction ID required' });
+  }
+  db.query(deleteQuery, values, (err, result) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ data: 'Successfully deleted transaction', status: 200 });
+  });
+});
 
 app.listen(PORT, function() {
   console.log('Server started on', PORT);
