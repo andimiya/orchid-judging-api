@@ -19,6 +19,8 @@ Hosted EC2 API Endpoint:
 `ec2-34-238-43-66.compute-1.amazonaws.com:8080`
 
 Deployment:
+- Build from local
+  - `docker build --no-cache -t andimiya/crypto-api .`
 - Push from local to Docker
   - `docker push andimiya/crypto-api`
 - ssh into EC2 instance
