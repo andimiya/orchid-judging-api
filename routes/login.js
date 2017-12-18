@@ -5,12 +5,17 @@ const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcrypt');
 const db = require('../db');
 
+
 passport.use(new LocalStrategy(
   (username, password, done) => {
-    db.query('SELECT * FROM Users WHERE ID=1', (err, result) => {
+    console.log(username, 'username');
+    const cryptoQuery = 'SELECT * FROM Users WHERE first_name = $1';
+    const values = [ username ];
+
+    db.query(cryptoQuery, values, (err, result) => {
       let user = result.rows[0];
       if (user === null) {
-        return done(null, false, { message: 'Bad username' });
+        return done(null, false, { message: 'Username null' });
       } else {
         bcrypt.compare(password, user.password)
           .then(res => {
@@ -27,31 +32,31 @@ passport.use(new LocalStrategy(
   }
 ));
 
-passport.serializeUser(function(user, done) {
-  done(null, user.id);
+passport.serializeUser((user, done) => {
+  console.log('serialize');
+  return done(null, user);
 });
 
-passport.deserializeUser(function(id, done) {
-  User.findById(id, function (err, user) {
-    done(err, user);
-  });
+passport.deserializeUser((user, done) => {
+  console.log('deserialize');
+  return done(null, user);
 });
 
 router.post('/login', (req, res, next) => {
+  req.user = req.body.user;
+  let user = req.user;
   passport.authenticate('local', (err, user, info) => {
-    console.log(user, 'user');
     if (err) {
-      console.log(err, 'user authenticate');
       return res.json({ message: err })
     }
     if (!user) {
       return res.json({ message: 'Username required' })
     }
-    req.logIn(user, function(err) {
+    req.logIn(user, (err) => {
       if (err) {
         return next(err);
       }
-      console.log(user, 'user in router post');
+      return console.log('done!!');
     });
   })(req, res, next);
 });
