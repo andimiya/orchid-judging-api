@@ -1,24 +1,39 @@
 const express = require('express');
+const session = require('express-session');
 const app = express();
+const redis = require('redis');
+const redisStore = require('connect-redis')(session);
 const bodyParser = require('body-parser');
 const PORT = process.env.PORT || 8080;
 const db = require('./db');
-const bcrypt = require('bcrypt');
+
 const request = require('request');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const auth = require('passport-local-authenticate');
+
+const bcrypt = require('bcrypt');
 const saltRounds = 10;
+const isAuth = require('./lib/isAuth');
+const login = require('./routes/login');
+
+const sess = {
+  secret: 'keyboard_cat'
+};
 
 app.use(express.static("public"));
-
-app.use(function(req, res, next){
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Headers, Access-Control-Allow-Header, Access-Control-Allow-Origin, Access-Control-Allow-Methods");
-  res.header("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS, POST, PUT, DELETE");
-  next();
-});
-
 app.use(bodyParser.urlencoded({ extended: true}));
 app.use(bodyParser.json());
 
+app.use(session({
+  store: new redisStore(),
+  secret: sess.secret
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.use('/', login);
 
 app.get('/api/users', (req, res) => {
   db.query('SELECT * FROM Users', (err, result) => {
@@ -55,7 +70,7 @@ app.get('/api/crypto-types', (req, res) => {
   });
 });
 
-app.get('/api/transactions', (req, res) => {
+app.get('/api/transactions', isAuth, (req, res) => {
   const cryptoQuery = 'SELECT crypto_types.id AS crypto_name, transactions.id AS transaction_id, usd_invested, coin_purchased, exchange_rate, updated_at, crypto_types.name FROM crypto_types LEFT OUTER JOIN transactions ON crypto_types.id = transactions.crypto_type_id WHERE user_id = $1';
   const { user_id } = req.query;
   const values = [ user_id ];
@@ -86,7 +101,7 @@ app.get('/api/crypto-types/sums', (req, res) => {
   });
 });
 
-app.post('/api/users', (req, res) => {
+app.post('/api/new-user', (req, res) => {
   const insertQuery = 'INSERT INTO Users (first_name, last_name, email, password) VALUES ($1, $2, $3, $4) RETURNING id, email, password';
   const { first_name, last_name, email } = req.body;
   bcrypt.genSalt(saltRounds, (err, salt) => {
