@@ -8,7 +8,6 @@ const db = require('../db');
 
 passport.use(new LocalStrategy(
   (username, password, done) => {
-    console.log(username, 'username');
     const cryptoQuery = 'SELECT * FROM Users WHERE first_name = $1';
     const values = [ username ];
 
@@ -19,26 +18,26 @@ passport.use(new LocalStrategy(
       } else {
         bcrypt.compare(password, user.password)
           .then(res => {
-            if(res){
-              return done(null, user);
+            if (res) {
+              return done (null, user);
+            } else {
+              return done (null, false, { error: 'invalid password' });
             }
-            else {
-              console.log('invalid password');
-              return done(null, false, { message: 'invalid password'});
-            }
-          });
+          })
+          .catch ((err) => {
+            console.log(err, 'error');
+            res.send({ error: err })
+          })
         }
     });
   }
 ));
 
 passport.serializeUser((user, done) => {
-  console.log('serialize');
   return done(null, user);
 });
 
 passport.deserializeUser((user, done) => {
-  console.log('deserialize');
   return done(null, user);
 });
 
