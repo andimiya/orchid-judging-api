@@ -3,7 +3,9 @@ const app = express();
 const bodyParser = require('body-parser');
 const PORT = process.env.PORT || 8080;
 const db = require('./db');
+const bcrypt = require('bcrypt');
 const request = require('request');
+const saltRounds = 10;
 
 app.use(express.static("public"));
 
@@ -85,17 +87,21 @@ app.get('/api/crypto-types/sums', (req, res) => {
 });
 
 app.post('/api/users', (req, res) => {
-  const insertQuery = 'INSERT INTO Users (first_name, last_name, email) VALUES ($1, $2, $3) RETURNING id, email';
+  const insertQuery = 'INSERT INTO Users (first_name, last_name, email, password) VALUES ($1, $2, $3, $4) RETURNING id, email, password';
   const { first_name, last_name, email } = req.body;
-  if (!email) {
-    return res.status(400).json({ error: 'Email required'})
-  }
-  const values = [first_name, last_name, email];
-  db.query(insertQuery, values, (err, result) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-    return res.json({ data: result.rows });
+  bcrypt.genSalt(saltRounds, (err, salt) => {
+    bcrypt.hash(req.body.password, salt, (err, hash) => {
+      if (!email) {
+        return res.status(400).json({ error: 'Email required'})
+      }
+      const values = [first_name, last_name, email, hash];
+      db.query(insertQuery, values, (err, result) => {
+        if (err) {
+          return res.status(500).json({ error: err.message });
+        }
+        return res.json({ data: result.rows });
+      });
+    });
   });
 });
 
