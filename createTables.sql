@@ -21,7 +21,8 @@ CREATE TABLE Transactions (
   coin_purchased float8 not null,
   exchange_rate float8 not null,
   created_at timestamp,
-  updated_at timestamp
+  updated_at timestamp,
+  purchased_at timestamp
 );
 
 COMMIT;

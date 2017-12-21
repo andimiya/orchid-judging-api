@@ -36,6 +36,12 @@ app.get('/api/coinmarket', (req, res) => {
   });
 });
 
+app.get('/api/historical-exchange', (req, res) => {
+  request(`https://min-api.cryptocompare.com/data/pricehistorical?fsym=BTC&tsyms=USD&ts=1513749600`, function (error, response, body) {
+    res.json(JSON.parse(body));
+  });
+});
+
 app.get('/api/crypto-types', (req, res) => {
   const cryptoQuery = 'SELECT DISTINCT crypto_types.name, crypto_types.symbol FROM transactions INNER JOIN crypto_types ON transactions.crypto_type_id = crypto_types.id WHERE user_id = $1';
   const { user_id } = req.query;
@@ -54,7 +60,7 @@ app.get('/api/crypto-types', (req, res) => {
 });
 
 app.get('/api/transactions', (req, res) => {
-  const cryptoQuery = 'SELECT crypto_types.id AS crypto_name, transactions.id AS transaction_id, usd_invested, coin_purchased, exchange_rate, updated_at, crypto_types.name FROM crypto_types LEFT OUTER JOIN transactions ON crypto_types.id = transactions.crypto_type_id WHERE user_id = $1';
+  const cryptoQuery = 'SELECT crypto_types.id AS crypto_name, transactions.id AS transaction_id, usd_invested, coin_purchased, exchange_rate, updated_at, purchased_at, crypto_types.name FROM crypto_types LEFT OUTER JOIN transactions ON crypto_types.id = transactions.crypto_type_id WHERE user_id = $1';
   const { user_id } = req.query;
   const values = [ user_id ];
 
@@ -100,12 +106,12 @@ app.post('/api/users', (req, res) => {
 });
 
 app.post('/api/transactions', (req, res) => {
-  const insertQuery = 'INSERT INTO Transactions (crypto_type_id, user_id, usd_invested, coin_purchased, exchange_rate, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id, usd_invested';
-  const { crypto_id, user_id, usd_invested, coin_purchased, exchange_rate } = req.body;
+  const insertQuery = 'INSERT INTO Transactions (crypto_type_id, user_id, usd_invested, coin_purchased, exchange_rate, purchased_at, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id, usd_invested, purchased_at';
+  const { crypto_id, user_id, usd_invested, coin_purchased, exchange_rate, purchased_at } = req.body;
   if (!crypto_id || !user_id || !usd_invested || !coin_purchased || !exchange_rate) {
     return res.status(400).json({ error: 'Entries required'})
   }
-  const values = [crypto_id, user_id, usd_invested, coin_purchased, exchange_rate];
+  const values = [crypto_id, user_id, usd_invested, coin_purchased, exchange_rate, purchased_at];
   db.query(insertQuery, values, (err, result) => {
     if (err) {
       return res.status(500).json({ error: err.message });
