@@ -37,7 +37,7 @@ app.get('/api/coinmarket', (req, res) => {
 });
 
 app.get('/api/historical-exchange', (req, res) => {
-  request(`https://min-api.cryptocompare.com/data/pricehistorical?fsym=BTC&tsyms=USD&ts=1513749600`, function (error, response, body) {
+  request(`https://min-api.cryptocompare.com/data/pricehistorical?fsym=${req.query.symbol}&tsyms=USD&ts=${req.query.purchased_at}`, (error, response, body) => {
     res.json(JSON.parse(body));
   });
 });
