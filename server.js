@@ -4,6 +4,7 @@ const app = express();
 const redis = require('redis');
 const redisStore = require('connect-redis')(session);
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const PORT = process.env.PORT || 8080;
 const db = require('./db');
 
@@ -21,19 +22,28 @@ const sess = {
   secret: 'keyboard_cat'
 };
 
-app.use(express.static("public"));
+app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: true}));
 app.use(bodyParser.json());
+app.use(cookieParser());
+
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
 
 app.use(session({
   store: new redisStore(),
-  secret: sess.secret
+  secret: sess.secret,
+  resave: false,
+  saveUnintialized: true
 }));
 
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use('/', login);
+// app.use('/api', login);
 
 app.get('/api/users', (req, res) => {
   db.query('SELECT * FROM Users', (err, result) => {
@@ -114,7 +124,7 @@ app.post('/api/new-user', (req, res) => {
         if (err) {
           return res.status(500).json({ error: err.message });
         }
-        return res.json({ data: result.rows });
+        return res.json({ data: result.rows, status: 200 });
       });
     });
   });
@@ -149,6 +159,56 @@ app.delete('/api/transactions/:id', (req, res) => {
     res.json({ data: 'Successfully deleted transaction', status: 200 });
   });
 });
+
+passport.use(new LocalStrategy(
+  function(user, password, done) {
+    const cryptoQuery = 'SELECT * FROM Users WHERE email = $1';
+    const values = [ user ];
+    db.query(cryptoQuery, values, (err, result) => {
+      let user = result.rows[0];
+      let username = user;
+      if (err) { return done(err); }
+      if (!user) {
+        return done(null, false, { message: 'Incorrect Username' });
+      }
+      if (!user.validPassword(password)) {
+        return done(null, false, { message: 'Incorrect Password' });
+      }
+      else {
+        bcrypt.compare(password, user.password)
+          .then(res => {
+            if (res) {
+              return done (null, user);
+            } else {
+              return done (null, false, { error: 'invalid password' });
+            }
+          })
+          .catch ((err) => {
+            console.log(err, 'error');
+            res.send({ error: err })
+          })
+        }
+      return done(null, user);
+    });
+  })
+);
+
+passport.serializeUser((user, done) => {
+  console.log(user, 'user serialize');
+  return done(null, user);
+});
+
+passport.deserializeUser((user, done) => {
+  console.log(user, 'user deserialize');
+  return done(null, user);
+});
+
+app.post('/api/login', passport.authenticate('local',
+  function(req, res) {
+    console.log(req, 'req user');
+    res.json({ currentUser: req.user });
+  }
+));
 
 app.listen(PORT, function() {
   console.log('Server started on', PORT);
