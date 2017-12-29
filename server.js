@@ -1,21 +1,77 @@
 const express = require('express');
+const session = require('express-session');
 const app = express();
+const redis = require('redis');
+const redisStore = require('connect-redis')(session);
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const PORT = process.env.PORT || 8080;
 const db = require('./db');
 
-app.use(express.static("public"));
+const request = require('request');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const auth = require('passport-local-authenticate');
 
-app.use(function(req, res, next){
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Headers, Access-Control-Allow-Header, Access-Control-Allow-Origin, Access-Control-Allow-Methods");
-  res.header("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS, POST, PUT, DELETE");
-  next();
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+const isAuth = require('./lib/isAuth');
+
+const sess = {
+  secret: 'keyboard_cat'
+};
+
+//
+// app.use((req, res, next) => {
+//   res.header("Access-Control-Allow-Origin", "*");
+//   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+//   next();
+// });
+
+passport.use(new LocalStrategy(
+  (username, password, done) => {
+    done(null, { username: username });
+  }
+));
+
+passport.serializeUser((user, done) => {
+  done(null, user);
 });
 
+passport.deserializeUser((id, done) => {
+  done(null, user);
+});
+
+app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true}));
 app.use(bodyParser.json());
 
+app.use(express.static('public'));
+
+app.use(session({
+  store: new redisStore(),
+  secret: sess.secret
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.post('/api/login', (req, res, next) => {
+  passport.authenticate('local', (err, user, info) => {
+    if (err) {
+      return done(err);
+    }
+    if (!user) {
+      res.json({ message: 'no username' })
+    }
+    req.logIn(user, function(err) {
+      if (err) {
+        return next(err);
+      }
+      return res.json({ message: 'success' })
+    });
+  }) (req, res, next);
+});
 
 app.get('/api/users', (req, res) => {
   db.query('SELECT * FROM Users', (err, result) => {
@@ -29,9 +85,9 @@ app.get('/api/currencies', (req, res) => {
   });
 });
 
-app.get('/api/currencies', (req, res) => {
-  db.query('SELECT * FROM crypto_types', (err, result) => {
-    res.json({ data: result.rows });
+app.get('/api/coinmarket', (req, res) => {
+  request(`https://api.coinmarketcap.com/v1/ticker/`, function (error, response, body) {
+    res.json(JSON.parse(body));
   });
 });
 
@@ -52,7 +108,7 @@ app.get('/api/crypto-types', (req, res) => {
   });
 });
 
-app.get('/api/transactions', (req, res) => {
+app.get('/api/transactions', isAuth, (req, res) => {
   const cryptoQuery = 'SELECT crypto_types.id AS crypto_name, transactions.id AS transaction_id, usd_invested, coin_purchased, exchange_rate, updated_at, crypto_types.name FROM crypto_types LEFT OUTER JOIN transactions ON crypto_types.id = transactions.crypto_type_id WHERE user_id = $1';
   const { user_id } = req.query;
   const values = [ user_id ];
@@ -83,18 +139,22 @@ app.get('/api/crypto-types/sums', (req, res) => {
   });
 });
 
-app.post('/api/users', (req, res) => {
-  const insertQuery = 'INSERT INTO Users (first_name, last_name, email) VALUES ($1, $2, $3) RETURNING id, email';
+app.post('/api/new-user', (req, res) => {
+  const insertQuery = 'INSERT INTO Users (first_name, last_name, email, password) VALUES ($1, $2, $3, $4) RETURNING id, email, password';
   const { first_name, last_name, email } = req.body;
-  if (!email) {
-    return res.status(400).json({ error: 'Email required'})
-  }
-  const values = [first_name, last_name, email];
-  db.query(insertQuery, values, (err, result) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-    return res.json({ data: result.rows });
+  bcrypt.genSalt(saltRounds, (err, salt) => {
+    bcrypt.hash(req.body.password, salt, (err, hash) => {
+      if (!email) {
+        return res.status(400).json({ error: 'Email required'})
+      }
+      const values = [first_name, last_name, email, hash];
+      db.query(insertQuery, values, (err, result) => {
+        if (err) {
+          return res.status(500).json({ error: err.message });
+        }
+        return res.json({ data: result.rows, status: 200 });
+      });
+    });
   });
 });
 
@@ -113,20 +173,20 @@ app.post('/api/transactions', (req, res) => {
   });
 });
 
-app.delete('/api/transactions', (req, res) => {
-  const deleteQuery = 'DELETE FROM Transactions WHERE id = $1'
-  const { id } = req.query;
-  const values = [ id ];  
-  if (!user_id) {
-    return res.status(400).json({ error: 'User ID required as query param' });
+app.delete('/api/transactions/:id', (req, res) => {
+  const deleteQuery = 'DELETE FROM Transactions WHERE id = $1';
+  const { id } = req.params;
+  const values = [id];
+  if (!id) {
+    return res.status(400).json({ error: 'Transaction ID required' });
   }
   db.query(deleteQuery, values, (err, result) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
-    return res.json({ data: result.rows, status: 200 });
+    res.json({ data: 'Successfully deleted transaction', status: 200 });
   });
-})
+});
 
 app.listen(PORT, function() {
   console.log('Server started on', PORT);
