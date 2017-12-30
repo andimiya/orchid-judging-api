@@ -3,7 +3,6 @@ const app = express();
 const bodyParser = require('body-parser');
 const PORT = process.env.PORT || 8080;
 const db = require('./db');
-const request = require('request');
 
 app.use(express.static("public"));
 
@@ -30,9 +29,9 @@ app.get('/api/currencies', (req, res) => {
   });
 });
 
-app.get('/api/coinmarket', (req, res) => {
-  request(`https://api.coinmarketcap.com/v1/ticker/`, function (error, response, body) {
-    res.json(JSON.parse(body));
+app.get('/api/currencies', (req, res) => {
+  db.query('SELECT * FROM crypto_types', (err, result) => {
+    res.json({ data: result.rows });
   });
 });
 
@@ -120,20 +119,20 @@ app.post('/api/transactions', (req, res) => {
   });
 });
 
-app.delete('/api/transactions/:id', (req, res) => {
-  const deleteQuery = 'DELETE FROM Transactions WHERE id = $1';
-  const { id } = req.params;
-  const values = [id];
-  if (!id) {
-    return res.status(400).json({ error: 'Transaction ID required' });
+app.delete('/api/transactions', (req, res) => {
+  const deleteQuery = 'DELETE FROM Transactions WHERE id = $1'
+  const { id } = req.query;
+  const values = [ id ];  
+  if (!user_id) {
+    return res.status(400).json({ error: 'User ID required as query param' });
   }
   db.query(deleteQuery, values, (err, result) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
-    res.json({ data: 'Successfully deleted transaction', status: 200 });
+    return res.json({ data: result.rows, status: 200 });
   });
-});
+})
 
 app.listen(PORT, function() {
   console.log('Server started on', PORT);

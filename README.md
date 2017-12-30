@@ -18,18 +18,6 @@ RDS Endpoint:
 Hosted EC2 API Endpoint:
 `ec2-34-238-43-66.compute-1.amazonaws.com:8080`
 
-Deployment:
-- Build from local
-  - `docker build --no-cache -t andimiya/crypto-api .`
-- Push from local to Docker
-  - `docker push andimiya/crypto-api`
-- ssh into EC2 instance
-  - `ssh -i "AndreaKeyPair.pem" ec2-user@ec2-34-238-43-66.compute-1.amazonaws.com`
-  - Stop the running docker container
-  - Run `docker run --env-file .env -p 8080:8080 -d andimiya/crypto-api`
-  - Pull down the latest docker image (`docker pull andimiya/crypto-api`)
-
-
 Table Relations:  
 
 ![image](https://user-images.githubusercontent.com/20802421/32694620-b92874de-c6e8-11e7-89a6-c8d395f7b39e.png)
