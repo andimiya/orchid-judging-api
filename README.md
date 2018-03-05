@@ -12,11 +12,24 @@ Run the API Locally:
 - Update `.env`
 - `docker run --env-file .env -p 8080:8080 -d andimiya/crypto-api`
 
-RDS Endpoint:
-`crypto-db.cutd8mmjjtp3.us-east-1.rds.amazonaws.com:5432`
-
 Hosted EC2 API Endpoint:
-`ec2-34-238-43-66.compute-1.amazonaws.com:8080`
+`ec2-34-212-0-41.us-west-2.compute.amazonaws.com:8080`
+
+Hosted EC2 Postgres:
+`ec2-34-212-0-41.us-west-2.compute.amazonaws.com:5432`
+
+API Deployment:
+
+- Build from local
+  - `docker build --no-cache -t andimiya/crypto-api .`
+- Push from local to Docker
+  - `docker push andimiya/crypto-api`
+- ssh into EC2 instance
+  - `ssh ec2-user@34.212.0.41 -i ~/.ssh/AndreaWestKeyPair.pem`
+- Stop the running docker container
+  - Pull down the latest docker image (`docker pull andimiya/crypto-api`)
+  - Run `docker run --env-file .env -p 8080:8080 -d andimiya/crypto-api`
+
 
 Table Relations:  
 
