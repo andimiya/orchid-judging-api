@@ -31,7 +31,7 @@ app.get('/api/currencies', (req, res) => {
 });
 
 app.get('/api/coinmarket', (req, res) => {
-  request(`https://api.coinmarketcap.com/v1/ticker`, (error, response, body) => {
+  request(`https://api.coinmarketcap.com/v1/ticker/`, (error, response, body) => {
     res.json(JSON.parse(body));
   });
 });
@@ -90,7 +90,7 @@ app.get('/api/crypto-types/sums', (req, res) => {
   });
 });
 
-app.post('/api/users', (req, res) => {
+app.post('/api/new-user', (req, res) => {
   const insertQuery = 'INSERT INTO Users (first_name, last_name, email) VALUES ($1, $2, $3) RETURNING id, email';
   const { first_name, last_name, email } = req.body;
   if (!email) {
