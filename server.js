@@ -59,6 +59,22 @@ app.get('/api/crypto-types', (req, res) => {
   });
 });
 
+app.get('/api/users', (req, res) => {
+  const cryptoQuery = 'SELECT * FROM Users WHERE email = $1';
+  const { email } = req.query;
+  const values = [ email ];
+
+  if (!email) {
+    return res.status(400).json({ error: 'Email required as query param' });
+  }
+  db.query(cryptoQuery, values, (err, result) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ data: result.rows });
+  });
+});
+
 app.get('/api/transactions', (req, res) => {
   const cryptoQuery = 'SELECT crypto_types.id AS crypto_name, transactions.id AS transaction_id, usd_invested, coin_purchased, exchange_rate, updated_at, purchased_at, crypto_types.name FROM crypto_types LEFT OUTER JOIN transactions ON crypto_types.id = transactions.crypto_type_id WHERE user_id = $1';
   const { user_id } = req.query;
