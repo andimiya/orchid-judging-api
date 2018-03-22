@@ -130,17 +130,19 @@ app.post('/api/transactions', (req, res) => {
 });
 
 app.delete('/api/transactions', (req, res) => {
-  const deleteQuery = 'DELETE FROM Transactions WHERE id = $1'
-  const { id } = req.query;
-  const values = [ id ];
-  if (!user_id) {
+  const deleteQuery = 'DELETE FROM Transactions WHERE user_id = $1 AND id = $2';
+  const { user_id, id } = req.body;
+  
+  if (!user_id || !id ) {
     return res.status(400).json({ error: 'User ID required as query param' });
   }
+  const values = [ user_id, id ];
+  
   db.query(deleteQuery, values, (err, result) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
-    return res.json({ data: result.rows, status: 200 });
+    return res.json({ data: result, status: 200 });
   });
 })
 
