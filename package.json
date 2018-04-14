@@ -1,5 +1,5 @@
 {
-  "name": "crypto-tracker-api",
+  "name": "orchid-judging-api",
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
@@ -9,12 +9,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/andimiya/crypto-tracker-api.git"
+    "url": "git+https://github.com/andimiya/orchid-judging-api.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/andimiya/crypto-tracker-api/issues"
+    "url": "https://github.com/andimiya/orchid-judging-api/issues"
   },
   "dependencies": {
     "body-parser": "1.18.2",
